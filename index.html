@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Famille</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Bebas Neue', sans-serif;
+            color: #fff;
+            padding: 10px;
+        }
+        
+        #gameContainer {
+            position: relative;
+            border: 4px solid #f00;
+            background: #000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: #111;
+            border: 2px solid #700;
+            width: 100%;
+            max-width: 280px;
+            height: auto;
+            aspect-ratio: 1/1.2;
+            margin: 0 auto;
+        }
+        
+        #ui {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .score {
+            font-size: 20px;
+            color: #f00;
+        }
+        
+        .title {
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 2px 2px 0 #f00;
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 42px;
+            color: #f00;
+            text-shadow: 2px 2px 0 #000;
+            display: none;
+            animation: shake 0.5s infinite;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        
+        #startBtn {
+            display: block;
+            margin: 10px auto;
+            padding: 12px 30px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 20px;
+            background: #f00;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        
+        #startBtn:hover {
+            background: #c00;
+        }
+        
+        .nameAnimation {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            color: #ff0;
+            text-shadow: 2px 2px 0 #f00;
+            opacity: 0;
+            display: none;
+            text-align: center;
+            z-index: 11;
+        }
+        
+        .nameAnimation.show {
+            display: block;
+            animation: nameComplete 2s ease-out;
+        }
+        
+        #completedNames {
+            position: absolute;
+            left: -150px;
+            top: 0;
+            width: 140px;
+            background: rgba(0, 0, 0, 0.8);
+            border-right: 2px solid #f00;
+            padding: 10px;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            #completedNames {
+                display: none;
+            }
+        }
+        
+        .nameEntry {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #500;
+        }
+        
+        .nameMultiplier {
+            color: #ff0;
+        }
+        
+        #controlsContainer {
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        #directionalControls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 50px);
+            gap: 5px;
+            width: 100%;
+            max-width: 200px;
+            margin: 15px auto 0;
+        }
+        
+        .controlBtn {
+            background: rgba(255, 0, 0, 0.7);
+            border: 2px solid #900;
+            color: white;
+            font-size: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.1s;
+            touch-action: manipulation;
+        }
+        
+        .controlBtn:active {
+            background: rgba(255, 0, 0, 1);
+        }
+        
+        #upBtn {
+            grid-column: 2;
+            grid-row: 1;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        #leftBtn {
+            grid-column: 1;
+            grid-row: 2;
+            border-radius: 10px 0 0 10px;
+        }
+        
+        #rightBtn {
+            grid-column: 3;
+            grid-row: 2;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        #downBtn {
+            grid-column: 2;
+            grid-row: 3;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        #speedIndicator {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 14px;
+            color: #ff0;
+        }
+        
+        @keyframes shake {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-52%, -48%) rotate(-2deg); }
+            50% { transform: translate(-50%, -52%) rotate(2deg); }
+            75% { transform: translate(-48%, -50%) rotate(-1deg); }
+            100% { transform: translate(-50%, -50%) rotate(0deg); }
+        }
+        
+        @keyframes nameComplete {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="ui">
+            <div class="score">SCORE: <span id="score">0</span></div>
+            <div class="title">SNAKE FAMILLE</div>
+            <div class="score">MAX: <span id="highScore">0</span></div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="gameOver">GAME OVER</div>
+        <div id="nameComplete" class="nameAnimation">NOM COMPLET!</div>
+        <div id="speedIndicator">VITESSE: x1.0</div>
+        <button id="startBtn">JOUER</button>
+        
+        <div id="controlsContainer">
+            <div id="directionalControls">
+                <div id="upBtn" class="controlBtn">▲</div>
+                <div id="leftBtn" class="controlBtn">◀</div>
+                <div id="rightBtn" class="controlBtn">▶</div>
+                <div id="downBtn" class="controlBtn">▼</div>
+            </div>
+        </div>
+        
+        <div id="completedNames">
+            <h3 style="color:#f00;margin-top:0;text-align:center;border-bottom:1px solid #f00;padding-bottom:5px;">NOMS COMPLÉTÉS</h3>
+            <div id="namesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Éléments du DOM
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const gameOverElement = document.getElementById('gameOver');
+        const startButton = document.getElementById('startBtn');
+        const nameCompleteElement = document.getElementById('nameComplete');
+        const namesListElement = document.getElementById('namesList');
+        const speedIndicator = document.getElementById('speedIndicator');
+        
+        // Contrôles directionnels
+        const upButton = document.getElementById('upBtn');
+        const leftButton = document.getElementById('leftBtn');
+        const rightButton = document.getElementById('rightBtn');
+        const downButton = document.getElementById('downBtn');
+        
+        // Configurer la taille du canvas pour un format portrait plus compact
+        canvas.width = 280;
+        canvas.height = 336; // Ratio 1:1.2
+        
+        // Configuration du jeu
+        const gridSize = 15;
+        const tileCountX = Math.floor(canvas.width / gridSize);
+        const tileCountY = Math.floor(canvas.height / gridSize);
+        
+        // Liste des noms de famille
+        const nameWords = ["CAMILLE", "AUBIN", "CLOTILDE", "TANCREDE", "ALIX", "VIRGINIE", "FREDERIC", "ROBERT"];
+        
+        // Variables du jeu
+        let snake = [];
+        let food = {};
+        let dx = 1;
+        let dy = 0;
+        let score = 0;
+        let highScore = 0;
+        let gameRunning = false;
+        let gameLoop;
+        let currentNameIndex = 0;
+        let currentLetterIndex = 0;
+        let nextDirection = {dx: 1, dy: 0};
+        let completedNamesMap = {};
+        let gameSpeed = 180; // Vitesse initiale un peu plus lente pour mobile
+        let baseSpeed = 180; // Pour calculer le multiplicateur
+        let speedMultiplier = 1;
+        
+        // Initialiser le compteur de noms
+        nameWords.forEach(name => {
+            completedNamesMap[name] = 0;
+        });
+        
+        // Fonction d'initialisation
+        function initGame() {
+            // Réinitialiser le serpent au milieu
+            const midX = Math.floor(tileCountX / 2);
+            const midY = Math.floor(tileCountY / 2);
+            
+            snake = [
+                {x: midX, y: midY},
+                {x: midX - 1, y: midY},
+                {x: midX - 2, y: midY}
+            ];
+            
+            // Réinitialiser la direction et les variables
+            dx = 1;
+            dy = 0;
+            nextDirection = {dx: 1, dy: 0};
+            score = 0;
+            currentNameIndex = 0;
+            currentLetterIndex = 0;
+            gameSpeed = baseSpeed;
+            speedMultiplier = 1;
+            
+            // Mettre à jour l'affichage
+            scoreElement.textContent = score;
+            gameOverElement.style.display = 'none';
+            speedIndicator.textContent = "VITESSE: x1.0";
+            
+            // Générer la première nourriture
+            generateFood();
+        }
+        
+        // Fonction pour générer une nouvelle nourriture
+        function generateFood() {
+            let validPosition = false;
+            
+            while (!validPosition) {
+                food.x = Math.floor(Math.random() * tileCountX);
+                food.y = Math.floor(Math.random() * tileCountY);
+                
+                validPosition = true;
+                
+                // Vérifier que la nourriture n'est pas sur le serpent
+                for (let part of snake) {
+                    if (part.x === food.x && part.y === food.y) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Fonction pour suivre la progression des noms
+        function trackNameProgress() {
+            const currentWord = nameWords[currentNameIndex];
+            currentLetterIndex++;
+            
+            if (currentLetterIndex >= currentWord.length) {
+                // Nom complet !
+                completeCurrentName(currentWord);
+                
+                // Passer au nom suivant
+                currentNameIndex = (currentNameIndex + 1) % nameWords.length;
+                currentLetterIndex = 0;
+                
+                // Bonus de points
+                score += 50;
+                scoreElement.textContent = score;
+                
+                // Accélération supplémentaire
+                speedUp(0.95);
+            }
+        }
+        
+        // Fonction pour marquer un nom comme complété
+        function completeCurrentName(name) {
+            // Incrémenter le compteur pour ce nom
+            completedNamesMap[name]++;
+            
+            // Mettre à jour l'affichage des noms complétés
+            updateCompletedNamesList();
+            
+            // Afficher l'animation
+            let completionText = name;
+            if (completedNamesMap[name] > 1) {
+                completionText += " x" + completedNamesMap[name];
+            }
+            
+            nameCompleteElement.textContent = completionText + " COMPLET!";
+            nameCompleteElement.classList.remove('show');
+            void nameCompleteElement.offsetWidth; // Force reflow
+            nameCompleteElement.classList.add('show');
+        }
+        
+        // Mise à jour de la liste des noms complétés (pour l'affichage sur desktop)
+        function updateCompletedNamesList() {
+            namesListElement.innerHTML = '';
+            
+            // Trier les noms par nombre de complétion
+            const sortedNames = Object.keys(completedNamesMap).sort((a, b) => 
+                completedNamesMap[b] - completedNamesMap[a]
+            );
+            
+            sortedNames.forEach(name => {
+                if (completedNamesMap[name] > 0) {
+                    const div = document.createElement('div');
+                    div.className = 'nameEntry';
+                    div.innerHTML = `
+                        <span>${name}</span>
+                        <span class="nameMultiplier">x${completedNamesMap[name]}</span>
+                    `;
+                    namesListElement.appendChild(div);
+                }
+            });
+        }
+        
+        // Fonction pour accélérer le jeu
+        function speedUp(factor) {
+            if (gameSpeed > 60) { // Limite de vitesse pour garder le jeu jouable
+                gameSpeed *= factor;
+                speedMultiplier = baseSpeed / gameSpeed;
+                
+                // Mettre à jour l'indicateur de vitesse
+                speedIndicator.textContent = `VITESSE: x${speedMultiplier.toFixed(1)}`;
+                
+                // Redémarrer la boucle de jeu à la nouvelle vitesse
+                if (gameRunning) {
+                    clearInterval(gameLoop);
+                    gameLoop = setInterval(gameLogicTick, gameSpeed);
+                }
+            }
+        }
+        
+        // Dessiner le serpent
+        function drawSnake() {
+            for (let i = 0; i < snake.length; i++) {
+                const part = snake[i];
+                
+                if (i === 0) {
+                    // Tête
+                    ctx.fillStyle = '#f00';
+                    ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+                    
+                    // Yeux
+                    ctx.fillStyle = '#fff';
+                    // Position des yeux selon la direction
+                    if (dx === 1) { // droite
+                        ctx.fillRect(part.x * gridSize + gridSize * 0.7, part.y * gridSize + gridSize * 0.25, 3, 3);
+                        ctx.fillRect(part.x * gridSize + gridSize * 0.7, part.y * gridSize + gridSize * 0.65, 3, 3);
+                    } else if (dx === -1) { // gauche
+                        ctx.fillRect(part.x * gridSize + gridSize * 0.2, part.y * gridSize + gridSize * 0.25, 3, 3);
+                        ctx.fillRect(part.x * gridSize + gridSize * 0.2, part.y * gridSize + gridSize * 0.65, 3, 3);
+                    } else if (dy === -1) { // haut
+                        ctx.fillRect(part.x * gridSize + gridSize * 0.25, part.y * gridSize + gridSize * 0.2, 3, 3);
+                        ctx.fillRect(part.x * gridSize + gridSize * 0.65, part.y * gridSize + gridSize * 0.2, 3, 3);
+                    } else { // bas
+                        ctx.fillRect(part.x * gridSize + gridSize * 0.25, part.y * gridSize + gridSize * 0.7, 3, 3);
+                        ctx.fillRect(part.x * gridSize + gridSize * 0.65, part.y * gridSize + gridSize * 0.7, 3, 3);
+                    }
+                } else {
+                    // Corps avec lettres
+                    ctx.fillStyle = '#444';
+                    ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+                    
+                    ctx.strokeStyle = '#700';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+                    
+                    // Afficher la lettre correspondante
+                    ctx.fillStyle = '#f00';
+                    ctx.font = `bold ${gridSize - 4}px Bebas Neue`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    // Calculer quelle lettre afficher
+                    const segmentIndex = i - 1;
+                    let letterToShow = '';
+                    let nameIndex = 0;
+                    let letterIndex = 0;
+                    let letterCount = 0;
+                    
+                    // Trouver à quel nom cette partie appartient
+                    for (let j = 0; j < nameWords.length; j++) {
+                        if (letterCount + nameWords[j].length > segmentIndex) {
+                            nameIndex = j;
+                            letterIndex = segmentIndex - letterCount;
+                            break;
+                        }
+                        letterCount += nameWords[j].length;
+                    }
+                    
+                    // Si on a dépassé tous les noms, recommencer du début
+                    if (letterCount <= segmentIndex) {
+                        const totalLength = nameWords.reduce((sum, name) => sum + name.length, 0);
+                        const adjustedIndex = segmentIndex % totalLength;
+                        
+                        // Recalculer
+                        letterCount = 0;
+                        for (let j = 0; j < nameWords.length; j++) {
+                            if (letterCount + nameWords[j].length > adjustedIndex) {
+                                nameIndex = j;
+                                letterIndex = adjustedIndex - letterCount;
+                                break;
+                            }
+                            letterCount += nameWords[j].length;
+                        }
+                    }
+                    
+                    letterToShow = nameWords[nameIndex][letterIndex];
+                    
+                    ctx.fillText(
+                        letterToShow,
+                        part.x * gridSize + gridSize / 2,
+                        part.y * gridSize + gridSize / 2
+                    );
+                }
+            }
+        }
+        
+        // Dessiner la nourriture
+        function drawFood() {
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(food.x * gridSize + 3, food.y * gridSize + 3, gridSize - 6, gridSize - 6);
+            
+            // Croix au centre
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(food.x * gridSize + gridSize/2 - 1, food.y * gridSize + 3, 2, gridSize - 6);
+            ctx.fillRect(food.x * gridSize + 3, food.y * gridSize + gridSize/2 - 1, gridSize - 6, 2);
+        }
+        
+        // Déplacer le serpent
+        function moveSnake() {
+            dx = nextDirection.dx;
+            dy = nextDirection.dy;
+            
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            
+            // Vérifier les collisions avec les murs
+            if (head.x < 0 || head.x >= tileCountX || head.y < 0 || head.y >= tileCountY) {
+                gameOver();
+                return;
+            }
+            
+            // Vérifier les collisions avec le corps
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) {
+                    gameOver();
+                    return;
+                }
+            }
+            
+            // Ajouter la nouvelle tête
+            snake.unshift(head);
+            
+            // Vérifier si on mange la nourriture
+            if (head.x === food.x && head.y === food.y) {
+                // Augmenter le score
+                score += 10;
+                scoreElement.textContent = score;
+                
+                // Générer nouvelle nourriture
+                generateFood();
+                
+                // Suivre la progression du nom
+                trackNameProgress();
+                
+                // Légère accélération
+                speedUp(0.98);
+            } else {
+                // Si on ne mange pas, retirer la queue
+                snake.pop();
+            }
+        }
+        
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            gameOverElement.style.display = 'block';
+            startButton.textContent = 'REJOUER';
+            
+            if (score > highScore) {
+                highScore = score;
+                highScoreElement.textContent = highScore;
+            }
+        }
+        
+        // Logique principale du jeu (appelée à chaque tick)
+        function gameLogicTick() {
+            // Effacer le canvas
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dessiner une grille subtile
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.1)';
+            ctx.lineWidth = 0.5;
+            
+            for (let i = 0; i < tileCountX; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let i = 0; i < tileCountY; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+            
+            // Dessiner le contour du terrain
+            ctx.strokeStyle = '#f00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+            
+            // Déplacer et dessiner
+            moveSnake();
+            drawFood();
+            drawSnake();
+        }
+        
+        // Démarrer le jeu
+        function startGame() {
+            if (gameRunning) return;
+            
+            initGame();
+            gameRunning = true;
+            gameLoop = setInterval(gameLogicTick, gameSpeed);
+            startButton.textContent = 'EN COURS';
+        }
+        
+        // Changer la direction
+        function handleKeydown(event) {
+            if (!gameRunning) return;
+            
+            const key = event.key.toLowerCase();
+            
+            if ((key === 'arrowleft' || key === 'q' || key === 'a') && dx !== 1) {
+                nextDirection = {dx: -1, dy: 0};
+            } else if ((key === 'arrowup' || key === 'z' || key === 'w') && dy !== 1) {
+                nextDirection = {dx: 0, dy: -1};
+            } else if ((key === 'arrowright' || key === 'd') && dx !== -1) {
+                nextDirection = {dx: 1, dy: 0};
+            } else if ((key === 'arrowdown' || key === 's') && dy !== -1) {
+                nextDirection = {dx: 0, dy: 1};
+            }
+            
+            if(['arrowleft', 'arrowup', 'arrowright', 'arrowdown'].includes(key)) {
+                event.preventDefault();
+            }
+        }
+        
+        // Gestionnaires pour les boutons directionnels
+        upButton.addEventListener('click', function() {
+            if (gameRunning && dy !== 1) {
+                nextDirection = {dx: 0, dy: -1};
+            }
+        });
+        
+        leftButton.addEventListener('click', function() {
+            if (gameRunning && dx !== 1) {
+                nextDirection = {dx: -1, dy: 0};
+            }
+        });
+        
+        rightButton.addEventListener('click', function() {
+            if (gameRunning && dx !== -1) {
+                nextDirection = {dx: 1, dy: 0};
+            }
+        });
+        
+        downButton.addEventListener('click', function() {
+            if (gameRunning && dy !== -1) {
+                nextDirection = {dx: 0, dy: 1};
+            }
+        });
+        
+        // Support tactile pour les boutons
+        upButton.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (gameRunning && dy !== 1) {
+                nextDirection = {dx: 0, dy: -1};
+            }
+        }, { passive: false });
+        
+        leftButton.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (gameRunning && dx !== 1) {
+                nextDirection = {dx: -1, dy: 0};
+            }
+        }, { passive: false });
+        
+        rightButton.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (gameRunning && dx !== -1) {
+                nextDirection = {dx: 1, dy: 0};
+            }
+        }, { passive: false });
+        
+        downButton.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (gameRunning && dy !== -1) {
+                nextDirection = {dx: 0, dy: 1};
+            }
+        }, { passive: false });
+        
+        // Support tactile pour les balayages (swipes)
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+        
+        document.addEventListener('touchend', function(e) {
+            if (!gameRunning) return;
+            
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+            
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            
+            // Seuil minimum pour considérer un swipe
+            const minSwipeDistance = 30;
+            
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > minSwipeDistance) {
+                // Swipe horizontal
+                if (diffX > 0 && dx !== -1) {
+                    nextDirection = {dx: 1, dy: 0}; // Droite
+                } else if (diffX < 0 && dx !== 1) {
+                    nextDirection = {dx: -1, dy: 0}; // Gauche
+                }
+            } else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > minSwipeDistance) {
+                // Swipe vertical
+                if (diffY > 0 && dy !== -1) {
+                    nextDirection = {dx: 0, dy: 1}; // Bas
+                } else if (diffY < 0 && dy !== 1) {
+                    nextDirection = {dx: 0, dy: -1}; // Haut
+                }
+            }
+        }, { passive: true });
+        
+        // Événements généraux
+        document.addEventListener('keydown', handleKeydown);
+        startButton.addEventListener('click', startGame);
+        
+        // Initialiser et afficher les instructions
+        function drawInstructions() {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Contour du terrain
+            ctx.strokeStyle = '#f00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+            
+            // Instructions
+            ctx.fillStyle = '#fff';
+            ctx.font = '18px Bebas Neue';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('APPUYEZ SUR JOUER', canvas.width / 2, canvas.height / 2 - 50);
+            ctx.fillText('POUR COMMENCER', canvas.width / 2, canvas.height / 2 - 25);
+            
+            ctx.font = '14px Bebas Neue';
+            ctx.fillText('UTILISEZ LES FLÈCHES OU', canvas.width / 2, canvas.height / 2 + 20);
+            ctx.fillText('ZQSD POUR VOUS DÉPLACER', canvas.width / 2, canvas.height / 2 + 40);
+            ctx.fillText('COLLECTEZ LES LETTRES', canvas.width / 2, canvas.height / 2 + 70);
+            ctx.fillText('POUR COMPLÉTER LES NOMS', canvas.width / 2, canvas.height / 2 + 90);
+        }
+        
+        // Dessiner les instructions initiales
+        drawInstructions();
+    </script>
+</body>
+</html>
