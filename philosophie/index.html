@@ -4,12 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f7fb">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0f14">
   <title>Textes philosophiques</title>
   <meta name="description" content="Publications et brouillons publiés en PDF">
+
+  <!-- Open Graph minimal -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Textes philosophiques">
+  <meta property="og:description" content="Publications et brouillons publiés en PDF">
+  <meta property="og:url" content="https://ajilnex.github.io/">
+  <meta property="og:image" content="https://ajilnex.github.io/favicon.svg">
+
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="mask-icon" href="/favicon.svg" color="#0b1020">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+
   <header class="site-header">
     <div class="wrap header-wrap">
       <a class="brand" href="/">Aubin&nbsp;Robert</a>
@@ -19,13 +32,17 @@
       </nav>
     </div>
   </header>
-  <main class="wrap">
-    <h1>Textes philosophiques</h1>
+
+  <main id="contenu" class="wrap">
+    <article class="content">
+      <h1>Textes philosophiques</h1>
 <ul>
 <li><a href="/philosophie/noms-propres-version-courte.pdf">Noms propres — version courte</a></li>
 </ul>
 
+    </article>
   </main>
+
   <footer class="site-footer wrap">
     <p>© <span id="y"></span> Aubin Robert — Eleventy &amp; GitHub Pages</p>
   </footer>
