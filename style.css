@@ -175,3 +175,15 @@ header .brand::after{
   50%    {transform:scale(1.1);opacity:1}
 }
 /* *********************************************************************** */
+
+/* 🌿 spacing system — respire ! ********************************************/
+:root{
+  --space-s:12px;
+  --space-m:24px;
+  --space-l:48px;
+}
+main.wrap > * + *{margin-top:var(--space-l);}
+h2{margin-bottom:var(--space-m);}
+ul{margin-top:var(--space-m);}
+li + li{margin-top:var(--space-m);}
+footer{margin-top:var(--space-l);}
