@@ -80,3 +80,24 @@ li > a:hover{ transform: translateY(-1px); box-shadow: 0 12px 28px rgba(15,17,19
 
 /* Réduction de mouvement */
 @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
+
+/* === full-gradient hover fill on buttons ================================ */
+li > a{
+  position:relative;
+  overflow:hidden;                  /* masque le ::before animé           */
+}
+li > a::before{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:var(--r);
+  background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3));
+  transform-origin:left;            /* point de départ à gauche           */
+  transform:scaleX(.15);            /* fine bande au repos                */
+  transition:transform .35s ease;
+  z-index:-1;                       /* passe sous le texte                */
+}
+li > a:hover::before{
+  transform:scaleX(1);              /* remplit toute la largeur           */
+}
+/* on cache la fine barre existante quand le fond s'affiche               */
+li > a:hover::after{opacity:0;}
